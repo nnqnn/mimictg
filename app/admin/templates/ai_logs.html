@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>AI logs</h1>
+<table>
+  <tr><th>ID</th><th>Task</th><th>Prompt</th><th>Error</th><th>Created</th></tr>
+  {% for log in logs %}
+  <tr><td>{{ log.id }}</td><td>{{ log.task_type }}</td><td>{{ log.prompt_name }}</td><td>{{ log.error or "—" }}</td><td>{{ log.created_at }}</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
+

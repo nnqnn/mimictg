@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Статистика</h1>
+<div class="grid">
+  <div class="card"><div class="muted">Всего пользователей</div><h2>{{ stats.total_users }}</h2></div>
+  <div class="card"><div class="muted">Пользователей сегодня</div><h2>{{ stats.users_today }}</h2></div>
+  <div class="card"><div class="muted">Активных подписок</div><h2>{{ stats.active_subscriptions }}</h2></div>
+  <div class="card"><div class="muted">Генераций за сутки</div><h2>{{ stats.generations_24h }}</h2></div>
+  <div class="card"><div class="muted">Ошибок за сутки</div><h2>{{ stats.errors_24h }}</h2></div>
+</div>
+{% endblock %}
+

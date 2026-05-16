@@ -1,0 +1,4 @@
+PRODUCT_NAME = "Mimic"
+PRODUCT_TAGLINE = "AI-контент-менеджер для Telegram"
+PRODUCT_DESCRIPTION = f"{PRODUCT_NAME} — {PRODUCT_TAGLINE}."
+

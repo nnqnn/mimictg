@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mimic Admin Login</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f7f8fa; display: grid; place-items: center; min-height: 100vh; margin: 0; }
+    form { width: 340px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; }
+    input { width: 100%; box-sizing: border-box; margin: 8px 0 14px; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; }
+    button { width: 100%; padding: 10px; border: 0; border-radius: 6px; background: #111827; color: white; }
+    .error { color: #b91c1c; }
+  </style>
+</head>
+<body>
+  <form method="post" action="/login">
+    <h1>Mimic Admin</h1>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <label>Логин</label>
+    <input name="login" required>
+    <label>Пароль</label>
+    <input name="password" type="password" required>
+    <button type="submit">Войти</button>
+  </form>
+</body>
+</html>
+

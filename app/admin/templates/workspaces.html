@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Каналы</h1>
+<table>
+  <tr><th>ID</th><th>User</th><th>Название</th><th>Тип</th><th>Username</th><th>Создан</th></tr>
+  {% for workspace in workspaces %}
+  <tr>
+    <td>{{ workspace.id }}</td>
+    <td><a href="/users/{{ workspace.user_id }}">{{ workspace.user_id }}</a></td>
+    <td>{{ workspace.title }}</td>
+    <td>{{ workspace.channel_type }}</td>
+    <td>{{ workspace.channel_username or "—" }}</td>
+    <td>{{ workspace.created_at }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
+

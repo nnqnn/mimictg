@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Пользователи</h1>
+<table>
+  <tr><th>ID</th><th>Telegram</th><th>Username</th><th>Тариф</th><th>Создан</th></tr>
+  {% for user in users %}
+  <tr>
+    <td><a href="/users/{{ user.id }}">{{ user.id }}</a></td>
+    <td>{{ user.telegram_id }}</td>
+    <td>{{ user.username or "—" }}</td>
+    <td>{{ user.subscription_plan }}</td>
+    <td>{{ user.created_at }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
+

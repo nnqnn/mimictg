@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Пользователь #{{ user.id }}</h1>
+<div class="card">
+  <p>Telegram ID: {{ user.telegram_id }}</p>
+  <p>Username: {{ user.username or "—" }}</p>
+  <p>Генераций: {{ gen_count }}</p>
+  <form method="post" action="/users/{{ user.id }}/plan">
+    <label>Тариф</label>
+    <select name="plan">
+      {% for plan in plans %}
+      <option value="{{ plan.value }}" {% if user.subscription_plan == plan.value %}selected{% endif %}>{{ plan.value }}</option>
+      {% endfor %}
+    </select>
+    <p><button type="submit">Сохранить тариф</button></p>
+  </form>
+</div>
+<h2>Каналы</h2>
+<table>
+  <tr><th>ID</th><th>Название</th><th>Тип</th><th>Активный</th></tr>
+  {% for workspace in workspaces %}
+  <tr><td>{{ workspace.id }}</td><td>{{ workspace.title }}</td><td>{{ workspace.channel_type }}</td><td>{{ workspace.is_active }}</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
+
