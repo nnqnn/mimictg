@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: mimic
       POSTGRES_PASSWORD: mimic
     ports:
-      - "5432:5432"
+      - "15432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -30,9 +30,8 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "8000:8000"
+      - "18080:8000"
     command: sh -c "alembic upgrade head && uvicorn app.admin.main:app --host 0.0.0.0 --port 8000"
 
 volumes:
   postgres_data:
-

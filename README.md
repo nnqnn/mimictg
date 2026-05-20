@@ -42,7 +42,7 @@ docker compose up --build
 4. Админка:
 
 ```text
-http://localhost:8000
+http://localhost:18080
 ```
 
 Первый вход создаёт admin user из `ADMIN_LOGIN` и `ADMIN_PASSWORD`.
@@ -103,4 +103,3 @@ JSON-задачи валидируются Pydantic-схемами. Если Dee
 pip install -e ".[dev]"
 pytest
 ```
-
