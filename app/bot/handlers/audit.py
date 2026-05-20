@@ -1,9 +1,10 @@
 from aiogram import F, Router
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.utils import get_current_user, require_active_workspace
 from app.bot.keyboards.inline import audit_keyboard
+from app.bot.keyboards.reply import main_menu_keyboard
 from app.config import Settings
 from app.db.models import AuditType, SubscriptionPlan
 from app.services.ai.tasks import AITasks
@@ -36,7 +37,7 @@ async def run_audit(
     user = await get_current_user(session, callback, settings)
     workspace = await require_active_workspace(session, user)
     audit_type = AuditType.FULL if callback.data.endswith(":full") else AuditType.SHORT
-    await callback.message.answer("Смотрю канал и готовлю аудит.")
+    await callback.message.answer("Смотрю канал и готовлю аудит.", reply_markup=ReplyKeyboardRemove())
     try:
         audit = await AuditService(ai, tariffs).run_audit(
             session,
@@ -45,9 +46,8 @@ async def run_audit(
             audit_type=audit_type,
         )
     except TariffLimitError as exc:
-        await callback.message.answer(str(exc))
+        await callback.message.answer(str(exc), reply_markup=main_menu_keyboard())
         await callback.answer()
         return
-    await callback.message.answer(format_audit(audit))
+    await callback.message.answer(format_audit(audit), reply_markup=main_menu_keyboard())
     await callback.answer()
-

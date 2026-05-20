@@ -1,6 +1,6 @@
 from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message, ReplyKeyboardRemove
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.utils import extract_message_text, get_current_user, require_active_workspace
@@ -81,7 +81,7 @@ async def receive_public_url(
 ) -> None:
     user = await get_current_user(session, message, settings)
     channel_url = (message.text or "").strip()
-    await message.answer("Принял. Читаю последние посты канала.")
+    await message.answer("Принял. Читаю последние посты канала.", reply_markup=ReplyKeyboardRemove())
     try:
         parsed_posts = await parse_public_channel(channel_url, limit=20)
         username = extract_channel_username(channel_url)
@@ -119,7 +119,7 @@ async def receive_public_url(
     await state.clear()
     await message.answer(
         "Готово. Я создал паспорт стиля канала.\n\n" + format_style_profile(profile.profile_json),
-        reply_markup=main_menu_keyboard(),
+        reply_markup=channels_menu_keyboard(),
     )
 
 
@@ -169,14 +169,14 @@ async def collect_private_post(
     data = await state.get_data()
     posts = list(data.get("posts") or [])
     if len(posts) >= 20:
-        await message.answer("Я уже собрал 20 постов — запускаю анализ.")
+        await message.answer("Я уже собрал 20 постов — запускаю анализ.", reply_markup=ReplyKeyboardRemove())
         await _create_or_retrain_private_workspace(message, state, session, settings, ai, posts)
         return
     posts.append({"text": text, "source_type": source_type.value})
     await state.update_data(posts=posts)
     await message.answer(f"Принял пост {len(posts)}/20.", reply_markup=private_training_keyboard())
     if len(posts) >= 20:
-        await message.answer("Я собрал 20 постов — этого достаточно для анализа.")
+        await message.answer("Я собрал 20 постов — этого достаточно для анализа.", reply_markup=ReplyKeyboardRemove())
         await _create_or_retrain_private_workspace(message, state, session, settings, ai, posts)
 
 
@@ -237,11 +237,11 @@ async def retrain_style(
         await message.answer(str(exc))
         return
     if workspace.channel_type == WorkspaceType.PUBLIC and workspace.channel_url:
-        await message.answer("Обновляю посты и переобучаю стиль.")
+        await message.answer("Обновляю посты и переобучаю стиль.", reply_markup=ReplyKeyboardRemove())
         parsed_posts = await parse_public_channel(workspace.channel_url, limit=20)
         await replace_source_posts(session, workspace.id, _source_posts_from_parsed(workspace.id, parsed_posts))
         profile = await StyleService(ai).analyze_workspace_style(session, user_settings=user.settings, workspace_id=workspace.id)
-        await message.answer(format_style_profile(profile.profile_json))
+        await message.answer(format_style_profile(profile.profile_json), reply_markup=channels_menu_keyboard())
         return
     await state.set_state(AddChannelStates.private_posts)
     await state.update_data(posts=[], retrain_workspace_id=workspace.id)
@@ -307,7 +307,22 @@ async def _create_or_retrain_private_workspace(
         for item in posts[:20]
     ]
     await replace_source_posts(session, workspace.id, source_posts)
-    await message.answer("Принял. Теперь изучаю стиль канала.")
-    profile = await StyleService(ai).analyze_workspace_style(session, user_settings=user.settings, workspace_id=workspace.id)
+    await message.answer("Принял. Теперь изучаю стиль канала.", reply_markup=ReplyKeyboardRemove())
+    try:
+        profile = await StyleService(ai).analyze_workspace_style(
+            session,
+            user_settings=user.settings,
+            workspace_id=workspace.id,
+        )
+    except AITaskError:
+        await state.clear()
+        await message.answer(
+            "Канал добавлен, но я не смог завершить AI-анализ. Попробуй «Переобучить стиль» чуть позже.",
+            reply_markup=channels_menu_keyboard(),
+        )
+        return
     await state.clear()
-    await message.answer(format_style_profile(profile.profile_json), reply_markup=main_menu_keyboard())
+    await message.answer(
+        "Готово. Я создал паспорт стиля канала.\n\n" + format_style_profile(profile.profile_json),
+        reply_markup=channels_menu_keyboard(),
+    )

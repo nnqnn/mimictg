@@ -1,9 +1,10 @@
 from aiogram import F, Router
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.utils import get_current_user, require_active_workspace
 from app.bot.keyboards.inline import idea_modes_keyboard
+from app.bot.keyboards.reply import main_menu_keyboard
 from app.config import Settings
 from app.db.repositories.content import get_latest_content_plan, get_latest_style_profile
 from app.db.repositories.workspaces import get_source_posts
@@ -48,6 +49,7 @@ async def generate_ideas(
     source_posts = await get_source_posts(session, workspace.id, limit=20)
     content_plan = await get_latest_content_plan(session, workspace.id)
     mode = callback.data.split(":", 1)[1]
+    await callback.message.answer("Готовлю идеи.", reply_markup=ReplyKeyboardRemove())
     result = await ai.generate_ideas(
         {
             "style_profile": profile.profile_json,
@@ -61,6 +63,5 @@ async def generate_ideas(
     lines = ["Идеи для постов:"]
     for item in result.ideas:
         lines.append(f"\n• {item.title}\n  {item.angle}\n  Тип: {item.post_type}. Цель: {item.goal}")
-    await callback.message.answer("\n".join(lines))
+    await callback.message.answer("\n".join(lines), reply_markup=main_menu_keyboard())
     await callback.answer()
-

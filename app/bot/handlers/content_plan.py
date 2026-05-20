@@ -1,6 +1,6 @@
 from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.utils import get_current_user, require_active_workspace
@@ -53,6 +53,7 @@ async def receive_content_plan(
     if not text:
         await message.answer("Пришли медиа-план текстом или .txt файлом.")
         return
+    await message.answer("Разбираю медиа-план.", reply_markup=ReplyKeyboardRemove())
     parsed = await ai.parse_content_plan({"raw_text": text})
     await state.update_data(raw_text=text, parsed_json=model_to_dict(parsed))
     await state.set_state(ContentPlanStates.confirm)
@@ -87,4 +88,3 @@ async def clear_content_plan(callback: CallbackQuery, state: FSMContext) -> None
     await state.clear()
     await callback.message.answer("Очистил черновик медиа-плана.", reply_markup=main_menu_keyboard())
     await callback.answer()
-

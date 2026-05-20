@@ -3,7 +3,7 @@ from zoneinfo import ZoneInfo
 
 from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.utils import get_current_user, require_active_workspace
@@ -57,7 +57,7 @@ async def choose_post_type(
     data = await state.get_data()
     topic = data.get("topic", "")
     post_type = callback.data.split(":", 1)[1]
-    await callback.message.answer("Генерирую пост в стиле канала.")
+    await callback.message.answer("Генерирую пост в стиле канала.", reply_markup=ReplyKeyboardRemove())
     try:
         post = await PostService(ai, tariffs).generate_post(
             session,
@@ -67,7 +67,7 @@ async def choose_post_type(
             post_type=post_type,
         )
     except (TariffLimitError, MissingStyleProfileError, RuntimeError) as exc:
-        await callback.message.answer(str(exc))
+        await callback.message.answer(str(exc), reply_markup=main_menu_keyboard())
         await callback.answer()
         return
     await state.clear()
@@ -94,6 +94,7 @@ async def post_action(
         return
 
     if action in {"rewrite", "shorter", "more_alive", "add_cta", "closer_to_style"}:
+        await callback.message.answer("Обновляю пост.", reply_markup=ReplyKeyboardRemove())
         try:
             updated = await PostService(ai, tariffs).improve_post(
                 session,
@@ -103,7 +104,7 @@ async def post_action(
                 action=action,
             )
         except (TariffLimitError, MissingStyleProfileError) as exc:
-            await callback.message.answer(str(exc))
+            await callback.message.answer(str(exc), reply_markup=main_menu_keyboard())
             await callback.answer()
             return
         await callback.message.answer(format_generated_post(updated), reply_markup=post_actions_keyboard(updated.id))

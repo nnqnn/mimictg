@@ -2,13 +2,12 @@ from datetime import datetime, timedelta
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.utils import get_current_user, require_active_workspace
 from app.bot.keyboards.inline import daily_keyboard, post_actions_keyboard
-from app.bot.keyboards.reply import main_menu_keyboard
 from app.bot.states import DailyPostStates
 from app.config import Settings
 from app.db.models import DailyPostSetting, GeneratedPost, GeneratedPostStatus
@@ -78,7 +77,7 @@ async def save_daily_time(message: Message, state: FSMContext, session: AsyncSes
     setting = await _get_daily_setting(session, workspace.id, create=True)
     setting.suggestion_time = text
     await state.clear()
-    await message.answer("Время сохранено.", reply_markup=main_menu_keyboard())
+    await message.answer("Время сохранено.", reply_markup=daily_keyboard(setting.enabled))
 
 
 @router.callback_query(F.data == "daily:test")
@@ -92,6 +91,7 @@ async def daily_test(callback: CallbackQuery, session: AsyncSession, settings: S
         return
     posts = await get_source_posts(session, workspace.id, limit=8)
     content_plan = await get_latest_content_plan(session, workspace.id)
+    await callback.message.answer("Готовлю тестовый пост.", reply_markup=ReplyKeyboardRemove())
     result = await ai.daily_post(
         {
             "style_profile": profile.profile_json,
@@ -138,4 +138,3 @@ def _pick_plan_item(parsed_json: dict | None) -> dict | None:
         return None
     items = parsed_json.get("items") or []
     return items[0] if items else None
-
