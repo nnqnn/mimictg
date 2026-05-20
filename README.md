@@ -90,7 +90,21 @@ nano .env
 DATABASE_URL=postgresql+asyncpg://mimic:mimic@db:5432/mimic
 ```
 
-4. Запустите в фоне:
+4. Поднимите БД и примените миграции:
+
+```bash
+docker compose up -d db
+docker compose run --rm migrate
+```
+
+Для старого Compose:
+
+```bash
+docker-compose up -d db
+docker-compose run --rm migrate
+```
+
+5. Запустите приложение в фоне:
 
 ```bash
 docker compose up --build -d
@@ -102,7 +116,7 @@ docker compose up --build -d
 docker-compose up --build -d
 ```
 
-5. Проверьте состояние:
+6. Проверьте состояние:
 
 ```bash
 docker compose ps
@@ -126,21 +140,25 @@ http://SERVER_IP:18080
 
 PostgreSQL снаружи слушает нестандартный порт `15432`, внутри Docker сеть использует `db:5432`.
 
-6. Обновление после изменений:
+7. Обновление после изменений:
 
 ```bash
 git pull
-docker compose up --build -d
+docker compose build
+docker compose run --rm migrate
+docker compose up -d
 ```
 
 или:
 
 ```bash
 git pull
-docker-compose up --build -d
+docker-compose build
+docker-compose run --rm migrate
+docker-compose up -d
 ```
 
-7. Остановка:
+8. Остановка:
 
 ```bash
 docker compose down
