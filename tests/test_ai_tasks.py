@@ -1,3 +1,6 @@
+from datetime import datetime
+
+from app.services.ai.logging import _json_safe
 from app.services.ai.prompt_loader import PromptLoader
 from app.services.ai.tasks import AITasks
 
@@ -24,3 +27,11 @@ async def test_ai_tasks_repairs_invalid_json(tmp_path):
 
     assert parsed.items[0].topic == "Тема"
 
+
+def test_ai_log_json_safe_converts_datetime():
+    payload = {"date": datetime(2026, 5, 21, 2, 30), "nested": [{"ok": True}]}
+
+    safe = _json_safe(payload)
+
+    assert safe["date"] == "2026-05-21 02:30:00"
+    assert safe["nested"][0]["ok"] is True

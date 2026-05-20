@@ -1,3 +1,4 @@
+import json
 from contextvars import ContextVar
 from typing import Any
 
@@ -33,10 +34,13 @@ async def write_ai_log(
         AiLog(
             task_type=task_type,
             prompt_name=prompt_name,
-            input_json=input_json,
+            input_json=_json_safe(input_json),
             output_text=output_text,
-            parsed_json=parsed_json,
+            parsed_json=_json_safe(parsed_json) if parsed_json is not None else None,
             error=error,
         )
     )
 
+
+def _json_safe(value: Any) -> Any:
+    return json.loads(json.dumps(value, ensure_ascii=False, default=str))

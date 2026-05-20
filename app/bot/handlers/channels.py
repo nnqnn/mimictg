@@ -18,7 +18,7 @@ from app.db.repositories.workspaces import (
     replace_source_posts,
     set_active_workspace,
 )
-from app.services.ai.tasks import AITasks
+from app.services.ai.tasks import AITaskError, AITasks
 from app.services.parser import ParsedPost, parse_public_channel
 from app.services.parser.telegram_public import PublicChannelParseError, extract_channel_username
 from app.services.style.service import StyleService, format_style_profile
@@ -100,10 +100,27 @@ async def receive_public_url(
     )
     await create_workspace(session, workspace)
     await replace_source_posts(session, workspace.id, _source_posts_from_parsed(workspace.id, parsed_posts))
-    await message.answer(f"Я собрал {len(parsed_posts)} постов — этого достаточно для анализа.")
-    profile = await StyleService(ai).analyze_workspace_style(session, user_settings=user.settings, workspace_id=workspace.id)
+    await message.answer(
+        f"Я собрал {len(parsed_posts)} постов. Теперь изучаю стиль канала — это может занять до минуты."
+    )
+    try:
+        profile = await StyleService(ai).analyze_workspace_style(
+            session,
+            user_settings=user.settings,
+            workspace_id=workspace.id,
+        )
+    except AITaskError:
+        await state.clear()
+        await message.answer(
+            "Канал добавлен, но я не смог завершить AI-анализ. Попробуй «Переобучить стиль» чуть позже.",
+            reply_markup=channels_menu_keyboard(),
+        )
+        return
     await state.clear()
-    await message.answer(format_style_profile(profile.profile_json), reply_markup=main_menu_keyboard())
+    await message.answer(
+        "Готово. Я создал паспорт стиля канала.\n\n" + format_style_profile(profile.profile_json),
+        reply_markup=main_menu_keyboard(),
+    )
 
 
 @router.message(AddChannelStates.private_posts, F.text == "🗑 Очистить загруженные посты")
