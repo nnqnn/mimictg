@@ -47,6 +47,113 @@ http://localhost:18080
 
 Первый вход создаёт admin user из `ADMIN_LOGIN` и `ADMIN_PASSWORD`.
 
+## Деплой на сервер
+
+Минимальный сервер: Ubuntu 22.04/24.04, Docker, Docker Compose plugin.
+
+1. Установите Docker:
+
+```bash
+sudo apt update
+sudo apt install -y ca-certificates curl git
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker $USER
+```
+
+После этого перелогиньтесь в SSH-сессию.
+
+2. Склонируйте проект:
+
+```bash
+git clone <your-repo-url> mimic
+cd mimic
+```
+
+3. Создайте env-файл:
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+Обязательно заполните:
+
+- `BOT_TOKEN`
+- `DEEPSEEK_API_KEY`
+- `ADMIN_SESSION_SECRET`
+- `ADMIN_LOGIN`
+- `ADMIN_PASSWORD`
+
+Для Docker оставьте:
+
+```env
+DATABASE_URL=postgresql+asyncpg://mimic:mimic@db:5432/mimic
+```
+
+4. Запустите в фоне:
+
+```bash
+docker compose up --build -d
+```
+
+Если на сервере установлен старый Compose, используйте:
+
+```bash
+docker-compose up --build -d
+```
+
+5. Проверьте состояние:
+
+```bash
+docker compose ps
+docker compose logs -f bot
+docker compose logs -f admin
+```
+
+Для старого Compose:
+
+```bash
+docker-compose ps
+docker-compose logs -f bot
+docker-compose logs -f admin
+```
+
+Админка будет доступна на:
+
+```text
+http://SERVER_IP:18080
+```
+
+PostgreSQL снаружи слушает нестандартный порт `15432`, внутри Docker сеть использует `db:5432`.
+
+6. Обновление после изменений:
+
+```bash
+git pull
+docker compose up --build -d
+```
+
+или:
+
+```bash
+git pull
+docker-compose up --build -d
+```
+
+7. Остановка:
+
+```bash
+docker compose down
+```
+
+или:
+
+```bash
+docker-compose down
+```
+
+Данные PostgreSQL лежат в Docker volume `postgres_data` и не удаляются обычным `docker compose down`.
+
 ## Миграции
 
 ```bash
@@ -101,5 +208,14 @@ JSON-задачи валидируются Pydantic-схемами. Если Dee
 
 ```bash
 pip install -e ".[dev]"
+pytest
+```
+
+Или через requirements:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r requirements-dev.txt
 pytest
 ```
