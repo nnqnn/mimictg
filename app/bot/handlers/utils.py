@@ -33,8 +33,7 @@ async def require_active_workspace(session: AsyncSession, user: User) -> Workspa
 
 
 def extract_message_text(message: Message) -> str | None:
-    text = message.text or message.caption
+    text = message.html_text if (message.text or message.caption) else None
     if text and text.strip():
         return text.strip()
     return None
-

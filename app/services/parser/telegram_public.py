@@ -79,9 +79,10 @@ def _load_legacy_parser():
 
 
 def _normalize_post(raw: dict[str, Any]) -> ParsedPost | None:
-    text = (raw.get("text") or "").strip()
+    text = (raw.get("text_html") or raw.get("text") or "").strip()
     if not text:
         return None
+    raw = {**raw, "text_format": raw.get("text_format") or "telegram_html"}
     return ParsedPost(
         text=text,
         date=normalize_date(raw.get("date")),
@@ -114,4 +115,3 @@ def parse_public_channel_sync(channel_url: str, limit: int = 20) -> list[ParsedP
 
 async def parse_public_channel(channel_url: str, limit: int = 20) -> list[ParsedPost]:
     return await asyncio.to_thread(parse_public_channel_sync, channel_url, limit)
-

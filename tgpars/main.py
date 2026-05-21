@@ -1,9 +1,26 @@
 import re
+from html import escape
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString, Tag
 
 
 CHANNEL = "durov"
+
+TAG_MAP = {
+    "b": "b",
+    "strong": "b",
+    "i": "i",
+    "em": "i",
+    "u": "u",
+    "ins": "u",
+    "s": "s",
+    "strike": "s",
+    "del": "s",
+    "code": "code",
+    "pre": "pre",
+    "blockquote": "blockquote",
+    "tg-spoiler": "tg-spoiler",
+}
 
 
 def clean_text(text_el):
@@ -28,6 +45,42 @@ def clean_text(text_el):
     return text.strip()
 
 
+def clean_formatted_text(text_el):
+    if not text_el:
+        return None
+
+    text = "".join(_node_to_telegram_html(child) for child in text_el.children)
+    text = re.sub(r"[ \t]*\n[ \t]*", "\n", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    return text.strip()
+
+
+def _node_to_telegram_html(node):
+    if isinstance(node, NavigableString):
+        return escape(str(node), quote=False)
+    if not isinstance(node, Tag):
+        return ""
+
+    name = (node.name or "").lower()
+    if name == "br":
+        return "\n"
+    if name == "tg-emoji":
+        return escape(node.get_text("", strip=False), quote=False)
+
+    inner = "".join(_node_to_telegram_html(child) for child in node.children)
+    if name == "a":
+        href = (node.get("href") or "").strip()
+        if href:
+            return f'<a href="{escape(href, quote=True)}">{inner}</a>'
+        return inner
+
+    tag = TAG_MAP.get(name)
+    if tag:
+        return f"<{tag}>{inner}</{tag}>"
+    return inner
+
+
 def parse_channel(channel: str):
     url = f"https://t.me/s/{channel}"
 
@@ -50,12 +103,18 @@ def parse_channel(channel: str):
         views_el = msg.select_one(".tgme_widget_message_views")
         link_el = msg.select_one(".tgme_widget_message_date")
 
+        text_html = clean_formatted_text(text_el)
+        text_plain = clean_text(text_el)
+
         posts.append({
             "id": post_id,
             "url": link_el.get("href") if link_el else None,
             "date": date_el.get("datetime") if date_el else None,
             "views": views_el.get_text(strip=True) if views_el else None,
-            "text": clean_text(text_el),
+            "text": text_html or text_plain,
+            "text_html": text_html,
+            "text_plain": text_plain,
+            "text_format": "telegram_html" if text_html else "plain_text",
         })
 
     return posts

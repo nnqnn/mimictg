@@ -172,7 +172,15 @@ async def collect_private_post(
         await message.answer("Я уже собрал 20 постов — запускаю анализ.", reply_markup=ReplyKeyboardRemove())
         await _create_or_retrain_private_workspace(message, state, session, settings, ai, posts)
         return
-    posts.append({"text": text, "source_type": source_type.value})
+    posts.append(
+        {
+            "text": text,
+            "source_type": source_type.value,
+            "raw": {
+                "text_format": "plain_text" if source_type == SourcePostType.FILE else "telegram_html",
+            },
+        }
+    )
     await state.update_data(posts=posts)
     await message.answer(f"Принял пост {len(posts)}/20.", reply_markup=private_training_keyboard())
     if len(posts) >= 20:
@@ -303,6 +311,7 @@ async def _create_or_retrain_private_workspace(
             workspace_id=workspace.id,
             text=item["text"],
             source_type=SourcePostType(item.get("source_type", SourcePostType.MANUAL_TEXT.value)),
+            raw=item.get("raw") or {"text_format": "telegram_html"},
         )
         for item in posts[:20]
     ]

@@ -206,6 +206,8 @@ alembic upgrade head
 
 Существующий парсер в `tgpars/main.py` сохранён. Wrapper находится в `app/services/parser/telegram_public.py` и возвращает единый формат `ParsedPost`.
 
+Текстовые посты сохраняются с Telegram HTML-форматированием, если оно есть: `bold`, `italic`, ссылки, код, цитаты, спойлеры. Это же форматирование учитывается при обучении паспорта стиля.
+
 `tgpars/venv/` не используется приложением и исключён через `.gitignore`.
 
 ## AI pipeline

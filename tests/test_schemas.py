@@ -45,6 +45,8 @@ def test_style_profile_schema_validation():
             "closing_patterns": [],
             "cta_patterns": [],
             "emoji_usage": "редко",
+            "formatting_usage": "иногда выделяет ключевые фразы жирным",
+            "formatting_patterns": ["точечный <b>акцент</b>"],
             "storytelling_usage": "иногда",
             "expertise_level": "прикладной",
             "sales_style": "мягкий",
@@ -57,4 +59,4 @@ def test_style_profile_schema_validation():
     )
 
     assert profile.confidence == 0.8
-
+    assert profile.formatting_usage.startswith("иногда")

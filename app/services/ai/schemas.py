@@ -15,6 +15,8 @@ class StyleProfileSchema(BaseModel):
     closing_patterns: list[str] = Field(default_factory=list)
     cta_patterns: list[str] = Field(default_factory=list)
     emoji_usage: str
+    formatting_usage: str = ""
+    formatting_patterns: list[str] = Field(default_factory=list)
     storytelling_usage: str
     expertise_level: str
     sales_style: str
@@ -107,4 +109,3 @@ class QualityCheckSchema(BaseModel):
 
 def model_to_dict(model: BaseModel) -> dict[str, Any]:
     return model.model_dump()
-
