@@ -14,3 +14,6 @@ build/
 tgpars/venv/
 tgpars/__pycache__/
 
+deploy.local.sh
+.deploy.env
+*.deploy.local.sh
