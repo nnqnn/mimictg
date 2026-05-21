@@ -41,6 +41,16 @@ class Settings(BaseSettings):
     default_timezone: str = Field(default="Europe/Moscow", alias="DEFAULT_TIMEZONE")
     default_daily_post_time: str = Field(default="12:00", alias="DEFAULT_DAILY_POST_TIME")
 
+    telegapay_base_url: str = Field(
+        default="https://secure.telegapay.link/api/v1",
+        alias="TELEGAPAY_BASE_URL",
+    )
+    telegapay_api_key: str = Field(default="", alias="TELEGAPAY_API_KEY")
+    telegapay_return_url: str = Field(default="", alias="TELEGAPAY_RETURN_URL")
+    payment_min_amount: int = Field(default=100, alias="PAYMENT_MIN_AMOUNT")
+    payment_ttl_minutes: int = Field(default=60, alias="PAYMENT_TTL_MINUTES")
+    payment_poll_interval_seconds: int = Field(default=60, alias="PAYMENT_POLL_INTERVAL_SECONDS")
+
     admin_session_secret: str = Field(default="change-me", alias="ADMIN_SESSION_SECRET")
     admin_login: str = Field(default="admin", alias="ADMIN_LOGIN")
     admin_password: str = Field(default="admin", alias="ADMIN_PASSWORD")

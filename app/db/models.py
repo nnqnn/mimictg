@@ -1,5 +1,6 @@
 import enum
 from datetime import datetime
+from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import (
@@ -9,6 +10,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -59,6 +61,13 @@ class AuditType(str, enum.Enum):
 
 
 class PaymentStatus(str, enum.Enum):
+    PENDING = "pending"
+    PAID = "paid"
+    CANCELLED = "cancelled"
+    FAILED = "failed"
+
+
+class SubscriptionStatus(str, enum.Enum):
     MOCKED = "mocked"
     ACTIVE = "active"
     CANCELLED = "cancelled"
@@ -91,6 +100,7 @@ class User(Base, TimestampMixin):
 
     workspaces: Mapped[list["Workspace"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     generated_posts: Mapped[list["GeneratedPost"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    payments: Mapped[list["Payment"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Workspace(Base, TimestampMixin):
@@ -210,10 +220,30 @@ class Subscription(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     plan: Mapped[SubscriptionPlan] = mapped_column(String(32), nullable=False)
-    status: Mapped[PaymentStatus] = mapped_column(String(32), default=PaymentStatus.MOCKED, nullable=False)
+    status: Mapped[SubscriptionStatus] = mapped_column(String(32), default=SubscriptionStatus.MOCKED, nullable=False)
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     metadata_json: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False)
+
+
+class Payment(Base, TimestampMixin):
+    __tablename__ = "payments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    currency: Mapped[str] = mapped_column(String(8), default="RUB", nullable=False)
+    target_plan: Mapped[SubscriptionPlan] = mapped_column(String(32), nullable=False)
+    status: Mapped[PaymentStatus] = mapped_column(String(32), default=PaymentStatus.PENDING, nullable=False, index=True)
+    provider_order_id: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
+    provider_transaction_id: Mapped[str | None] = mapped_column(String(128), unique=True)
+    payment_url: Mapped[str | None] = mapped_column(String(2048))
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    activated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    user: Mapped[User] = relationship(back_populates="payments")
 
 
 class AdminUser(Base, TimestampMixin):
@@ -248,4 +278,3 @@ class AppErrorLog(Base, TimestampMixin):
     source: Mapped[str] = mapped_column(String(128), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     details: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
-

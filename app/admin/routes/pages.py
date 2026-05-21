@@ -8,7 +8,16 @@ from sqlalchemy import func, select
 from app.admin.auth import authenticate_admin, current_admin
 from app.admin.templating import templates
 from app.config import get_settings
-from app.db.models import AiLog, AppErrorLog, GeneratedPost, SubscriptionPlan, User, Workspace
+from app.db.models import (
+    AiLog,
+    AppErrorLog,
+    GeneratedPost,
+    Payment,
+    PaymentStatus,
+    SubscriptionPlan,
+    User,
+    Workspace,
+)
 from app.db.session import async_session_factory
 
 router = APIRouter()
@@ -72,6 +81,27 @@ async def dashboard(request: Request):
                 session,
                 select(func.count(AppErrorLog.id)).where(AppErrorLog.created_at >= last_day),
             ),
+            "payments_pending_24h": await _count(
+                session,
+                select(func.count(Payment.id)).where(
+                    Payment.created_at >= last_day,
+                    Payment.status == PaymentStatus.PENDING,
+                ),
+            ),
+            "payments_paid_24h": await _count(
+                session,
+                select(func.count(Payment.id)).where(
+                    Payment.created_at >= last_day,
+                    Payment.status == PaymentStatus.PAID,
+                ),
+            ),
+            "payments_problem_24h": await _count(
+                session,
+                select(func.count(Payment.id)).where(
+                    Payment.created_at >= last_day,
+                    Payment.status.in_([PaymentStatus.CANCELLED, PaymentStatus.FAILED]),
+                ),
+            ),
         }
     return templates.TemplateResponse("dashboard.html", {"request": request, "stats": stats})
 
@@ -95,9 +125,20 @@ async def user_detail(request: Request, user_id: int):
         result = await session.execute(select(Workspace).where(Workspace.user_id == user_id))
         workspaces = result.scalars().all()
         gen_count = await _count(session, select(func.count(GeneratedPost.id)).where(GeneratedPost.user_id == user_id))
+        payments_result = await session.execute(
+            select(Payment).where(Payment.user_id == user_id).order_by(Payment.created_at.desc()).limit(20)
+        )
+        payments = payments_result.scalars().all()
     return templates.TemplateResponse(
         "user_detail.html",
-        {"request": request, "user": user, "workspaces": workspaces, "gen_count": gen_count, "plans": SubscriptionPlan},
+        {
+            "request": request,
+            "user": user,
+            "workspaces": workspaces,
+            "gen_count": gen_count,
+            "plans": SubscriptionPlan,
+            "payments": payments,
+        },
     )
 
 

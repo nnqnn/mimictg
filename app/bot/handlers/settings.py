@@ -59,12 +59,6 @@ async def timezone(message: Message, state: FSMContext) -> None:
     await message.answer("Укажи часовой пояс. Например: Europe/Moscow")
 
 
-@router.message(F.text == "Подписка")
-async def subscription(message: Message, session: AsyncSession, settings: Settings) -> None:
-    user = await get_current_user(session, message, settings)
-    await message.answer(f"Текущий тариф: {user.subscription_plan}.")
-
-
 @router.message(F.text == "Политика конфиденциальности")
 async def policy(message: Message) -> None:
     await message.answer(PRIVACY_POLICY_TEXT)
@@ -139,4 +133,3 @@ async def _save_setting(
     user.settings = user_settings
     await state.clear()
     await message.answer("Сохранил.", reply_markup=settings_menu_keyboard())
-

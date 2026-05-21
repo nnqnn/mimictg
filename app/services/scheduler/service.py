@@ -3,20 +3,30 @@ from datetime import datetime, timezone
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy import select
+
+from app.config import Settings
 from app.db.models import GeneratedPost, ScheduledPost, ScheduledPostStatus, User, Workspace
 from app.db.session import async_session_factory
+from app.services.payments import SubscriptionBillingService, TelegaPayProvider
 from app.services.publishing.service import PublishingService
 from app.services.tariffs.service import TariffService
 
 
 class SchedulerService:
-    def __init__(self, bot: Bot, tariffs: TariffService):
+    def __init__(self, bot: Bot, tariffs: TariffService, settings: Settings):
         self.bot = bot
         self.tariffs = tariffs
+        self.settings = settings
         self.scheduler = AsyncIOScheduler(timezone="UTC")
 
     def start(self) -> None:
         self.scheduler.add_job(self.send_due_posts, "interval", seconds=60, id="send_due_posts")
+        self.scheduler.add_job(
+            self.poll_payments,
+            "interval",
+            seconds=self.settings.payment_poll_interval_seconds,
+            id="poll_payments",
+        )
         self.scheduler.start()
 
     async def shutdown(self) -> None:
@@ -44,3 +54,11 @@ class SchedulerService:
                     scheduled.status = ScheduledPostStatus.FAILED
                     scheduled.error = str(exc)
             await session.commit()
+
+    async def poll_payments(self) -> None:
+        service = SubscriptionBillingService(
+            self.settings,
+            async_session_factory,
+            TelegaPayProvider(self.settings),
+        )
+        await service.poll_pending_payments(self.bot)

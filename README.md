@@ -29,6 +29,7 @@ cp .env.example .env
 
 - `BOT_TOKEN`
 - `DEEPSEEK_API_KEY`
+- `TELEGAPAY_API_KEY`
 - `ADMIN_SESSION_SECRET`
 - `ADMIN_LOGIN`
 - `ADMIN_PASSWORD`
@@ -80,6 +81,7 @@ nano .env
 
 - `BOT_TOKEN`
 - `DEEPSEEK_API_KEY`
+- `TELEGAPAY_API_KEY`
 - `ADMIN_SESSION_SECRET`
 - `ADMIN_LOGIN`
 - `ADMIN_PASSWORD`
@@ -191,6 +193,7 @@ alembic upgrade head
 
 Главное меню:
 
+- “⭐ Подписка”
 - “➕ Мои каналы”
 - “✍️ Создать пост”
 - “💡 Идеи”
@@ -220,7 +223,17 @@ JSON-задачи валидируются Pydantic-схемами. Если Dee
 - Pro: 2 канала, daily post, медиа-план, публикация, полный аудит.
 - Business: 5 каналов, priority flag, задел под будущий агентский режим.
 
-Оплаты пока mock. Тариф можно менять вручную в админке.
+Оплаты работают через TelegaPay: пользователь выбирает тариф в разделе “⭐ Подписка”, получает ссылку на оплату, а бот подтверждает платёж polling-ом и активирует подписку. Тариф также можно менять вручную в админке.
+
+Минимальные переменные для оплаты:
+
+```env
+TELEGAPAY_BASE_URL=https://secure.telegapay.link/api/v1
+TELEGAPAY_API_KEY=your-telegapay-api-key
+TELEGAPAY_RETURN_URL=https://t.me/your_bot
+PAYMENT_TTL_MINUTES=60
+PAYMENT_POLL_INTERVAL_SECONDS=60
+```
 
 ## Тесты
 

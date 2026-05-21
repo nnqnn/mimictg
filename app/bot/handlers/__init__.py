@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from app.bot.handlers import admin, audit, channels, common, content_plan, daily, generation, ideas, settings, start
+from app.bot.handlers import admin, audit, channels, common, content_plan, daily, generation, ideas, settings, start, subscription
 
 
 def setup_routers() -> Router:
@@ -15,6 +15,7 @@ def setup_routers() -> Router:
         daily.router,
         content_plan.router,
         audit.router,
+        subscription.router,
         settings.router,
     ]:
         router.include_router(child)

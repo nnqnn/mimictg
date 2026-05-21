@@ -3,6 +3,7 @@ from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
 def main_menu_keyboard() -> ReplyKeyboardMarkup:
     rows = [
+        [KeyboardButton(text="⭐ Подписка")],
         [KeyboardButton(text="➕ Мои каналы"), KeyboardButton(text="✍️ Создать пост")],
         [KeyboardButton(text="💡 Идеи"), KeyboardButton(text="📅 Ежедневный пост")],
         [KeyboardButton(text="📌 Медиа-план"), KeyboardButton(text="🔎 Аудит")],
@@ -44,4 +45,3 @@ def private_training_keyboard() -> ReplyKeyboardMarkup:
         [KeyboardButton(text="⬅️ Назад")],
     ]
     return ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True)
-

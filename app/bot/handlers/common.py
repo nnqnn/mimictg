@@ -23,6 +23,7 @@ async def help_command(message: Message) -> None:
     await message.answer(
         f"{PRODUCT_DESCRIPTION}\n\n"
         "Добавь канал, обучи стиль и создавай посты по теме.\n"
+        "В разделе «⭐ Подписка» можно открыть daily post, медиа-план, полный аудит и публикацию.\n"
         "Команды: /start, /menu, /cancel, /delete_me."
     )
 
@@ -36,4 +37,3 @@ async def cancel(message: Message, state: FSMContext) -> None:
 @router.message(F.text == "Политика конфиденциальности")
 async def privacy_policy(message: Message) -> None:
     await message.answer(PRIVACY_POLICY_TEXT)
-

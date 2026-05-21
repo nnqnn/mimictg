@@ -36,7 +36,7 @@ async def run_bot() -> None:
     dp.workflow_data.update(settings=settings, tariffs=tariffs, ai=ai)
     dp.include_router(setup_routers())
 
-    scheduler = SchedulerService(bot, tariffs)
+    scheduler = SchedulerService(bot, tariffs, settings)
     scheduler.start()
     try:
         await bot.delete_webhook(drop_pending_updates=True)
@@ -44,4 +44,3 @@ async def run_bot() -> None:
     finally:
         await scheduler.shutdown()
         await bot.session.close()
-

@@ -5,6 +5,7 @@
   <p>Telegram ID: {{ user.telegram_id }}</p>
   <p>Username: {{ user.username or "—" }}</p>
   <p>Генераций: {{ gen_count }}</p>
+  <p>Подписка до: {{ user.subscription_until or "—" }}</p>
   <form method="post" action="/users/{{ user.id }}/plan">
     <label>Тариф</label>
     <select name="plan">
@@ -15,6 +16,22 @@
     <p><button type="submit">Сохранить тариф</button></p>
   </form>
 </div>
+<h2>Платежи</h2>
+<table>
+  <tr><th>ID</th><th>Тариф</th><th>Сумма</th><th>Статус</th><th>Создан</th><th>Оплачен</th></tr>
+  {% for payment in payments %}
+  <tr>
+    <td>{{ payment.id }}</td>
+    <td>{{ payment.target_plan }}</td>
+    <td>{{ payment.amount }} {{ payment.currency }}</td>
+    <td>{{ payment.status }}</td>
+    <td>{{ payment.created_at }}</td>
+    <td>{{ payment.paid_at or "—" }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6">Платежей пока нет.</td></tr>
+  {% endfor %}
+</table>
 <h2>Каналы</h2>
 <table>
   <tr><th>ID</th><th>Название</th><th>Тип</th><th>Активный</th></tr>
@@ -23,4 +40,3 @@
   {% endfor %}
 </table>
 {% endblock %}
-
