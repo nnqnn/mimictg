@@ -1,5 +1,5 @@
 from aiogram import F, Router
-from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
+from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.utils import get_current_user
@@ -48,8 +48,6 @@ async def buy_subscription(callback: CallbackQuery, session: AsyncSession, setti
         await callback.answer("Неизвестный тариф.", show_alert=True)
         return
 
-    if callback.message:
-        await callback.message.answer("Готовлю ссылку на оплату.", reply_markup=ReplyKeyboardRemove())
     try:
         payment = await _billing(settings).create_plan_payment(session, user=user, plan=plan)
     except PaymentProviderError:
@@ -69,12 +67,12 @@ async def buy_subscription(callback: CallbackQuery, session: AsyncSession, setti
         f"Ссылка готова.\n\n"
         f"Тариф: <b>{title}</b>\n"
         f"Сумма: <b>{payment.amount:.0f} ₽</b>\n\n"
-        "После оплаты я сам активирую подписку. Если уже оплатил, нажми проверку."
+        "После оплаты я сам проверю платёж и активирую подписку. Обычно это занимает до минуты."
     )
     if callback.message:
         await callback.message.answer(
             text,
-            reply_markup=payment_keyboard(payment.id, payment.payment_url, payment.target_plan),
+            reply_markup=payment_keyboard(payment.payment_url),
         )
     await callback.answer()
 

@@ -1,6 +1,5 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from app.db.models import SubscriptionPlan
 from app.services.payments.subscriptions import SubscriptionBillingService
 
 
@@ -115,10 +114,7 @@ def subscription_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def payment_keyboard(payment_id: int, payment_url: str | None, plan: SubscriptionPlan | str) -> InlineKeyboardMarkup:
-    rows = []
-    if payment_url:
-        rows.append([InlineKeyboardButton(text="Оплатить", url=payment_url)])
-    rows.append([InlineKeyboardButton(text="Я оплатил — проверить", callback_data=f"payment:check:{payment_id}")])
-    rows.append([InlineKeyboardButton(text="Выбрать другой тариф", callback_data="subscription:open")])
-    return InlineKeyboardMarkup(inline_keyboard=rows)
+def payment_keyboard(payment_url: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text="Оплатить", url=payment_url)]]
+    )
